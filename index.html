@@ -24,7 +24,7 @@
       data.asset_car = !!data.asset_car;
       data.income = parseInt(data.income);
 
-      const res = await fetch("https://your-backend-url/check-eligibility", {
+      const res = await fetch("https://snai.onrender.com/check-eligibility", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
