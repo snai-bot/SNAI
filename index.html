@@ -2,27 +2,44 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>राजस्थान योजना पात्रता जाँच</title>
+  <title>SNAI योजना पात्रता</title>
 </head>
 <body>
-  <h2>योजना पात्रता फॉर्म</h2>
+  <h2>राजस्थान योजना पात्रता फॉर्म</h2>
+
   <form id="eligibilityForm">
-    आय (₹): <input type="number" name="income" /><br/>
-    जाति: <input name="caste" /><br/>
-    किसान हैं? <input type="checkbox" name="is_farmer" /><br/>
-    कार है? <input type="checkbox" name="asset_car" /><br/>
-    <button type="submit">जाँचें</button>
+    आयु (Age): <input type="number" name="age" required /><br/><br/>
+    आय (₹): <input type="number" name="income" required /><br/><br/>
+    जाति (Caste): <input type="text" name="caste" required /><br/><br/>
+    जिला (District): <input type="text" name="district" required /><br/><br/>
+
+    महिला हैं? <input type="radio" name="gender" value="female" required> हाँ
+    <input type="radio" name="gender" value="male" required> नहीं<br/><br/>
+
+    विधवा हैं? <input type="checkbox" name="is_widow"><br/><br/>
+    किसान हैं? <input type="checkbox" name="is_farmer"><br/><br/>
+    आपके पास कार है? <input type="checkbox" name="asset_car"><br/><br/>
+
+    <button type="submit">✅ पात्रता जाँचें</button>
   </form>
 
+  <hr>
   <div id="result"></div>
 
   <script>
     document.getElementById("eligibilityForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(this).entries());
-      data.is_farmer = !!data.is_farmer;
-      data.asset_car = !!data.asset_car;
-      data.income = parseInt(data.income);
+      const form = new FormData(this);
+      const data = {
+        age: parseInt(form.get("age")),
+        income: parseInt(form.get("income")),
+        caste: form.get("caste"),
+        district: form.get("district"),
+        gender: form.get("gender"),
+        is_widow: form.get("is_widow") !== null,
+        is_farmer: form.get("is_farmer") !== null,
+        asset_car: form.get("asset_car") !== null
+      };
 
       const res = await fetch("https://snai.onrender.com/check-eligibility", {
         method: "POST",
@@ -31,10 +48,19 @@
       });
 
       const json = await res.json();
-      let output = "<h3>पात्र योजनाएं:</h3><ul>";
-      json.matched_schemes.forEach(s => {
-        output += `<li><strong>${s.scheme}</strong><br/>दस्तावेज़: ${s.documents}<br/><a href="${s.link}" target="_blank">लिंक</a></li>`;
-      });
+
+      let output = "<h3>🧾 पात्र योजनाएं:</h3><ul>";
+      if (json.matched_schemes.length === 0) {
+        output += "<li>कोई योजना नहीं मिली।</li>";
+      } else {
+        json.matched_schemes.forEach(s => {
+          output += `<li>
+            <strong>${s.scheme}</strong><br/>
+            📄 दस्तावेज़: ${s.documents || 'जानकारी उपलब्ध नहीं'}<br/>
+            🔗 <a href="${s.link}" target="_blank">आवेदन लिंक</a>
+          </li><br/>`;
+        });
+      }
       output += "</ul>";
       document.getElementById("result").innerHTML = output;
     });
