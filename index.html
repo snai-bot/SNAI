@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>राजस्थान योजना पात्रता जाँच</title>
+</head>
+<body>
+  <h2>योजना पात्रता फॉर्म</h2>
+  <form id="eligibilityForm">
+    आय (₹): <input type="number" name="income" /><br/>
+    जाति: <input name="caste" /><br/>
+    किसान हैं? <input type="checkbox" name="is_farmer" /><br/>
+    कार है? <input type="checkbox" name="asset_car" /><br/>
+    <button type="submit">जाँचें</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById("eligibilityForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(this).entries());
+      data.is_farmer = !!data.is_farmer;
+      data.asset_car = !!data.asset_car;
+      data.income = parseInt(data.income);
+
+      const res = await fetch("https://your-backend-url/check-eligibility", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      let output = "<h3>पात्र योजनाएं:</h3><ul>";
+      json.matched_schemes.forEach(s => {
+        output += `<li><strong>${s.scheme}</strong><br/>दस्तावेज़: ${s.documents}<br/><a href="${s.link}" target="_blank">लिंक</a></li>`;
+      });
+      output += "</ul>";
+      document.getElementById("result").innerHTML = output;
+    });
+  </script>
+</body>
+</html>
